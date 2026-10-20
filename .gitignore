@@ -1,0 +1,27 @@
+# IDE and build output
+**/.idea/
+**/*.iml
+**/.gradle/
+**/build/
+**/target/
+**/*.class
+
+# Android local SDK configuration
+**/local.properties
+
+# Local Spring Boot credentials
+CampusPulseServer/src/main/resources/application.properties
+
+# Local MySQL binaries, runtime data, and logs
+CampusPulseDatabase/mysql-*/
+CampusPulseDatabase/*.zip
+CampusPulseDatabase/**/*.err
+CampusPulseDatabase/**/*.log
+
+# Generated legacy-document extraction artifacts and external JARs
+CampusPulse/tools/legacy-doc-reader/lib/
+CampusPulse/tools/legacy-doc-reader/out/
+
+# Operating system files
+Thumbs.db
+Desktop.ini
