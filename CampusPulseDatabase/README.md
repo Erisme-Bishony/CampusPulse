@@ -18,13 +18,11 @@ Get-Content init.sql | mysql -u root -p
 
 `init.sql` 会按顺序执行建库、建表、索引、种子数据，并打印各表数量。执行成功后再为应用创建专用账号（避免服务端使用 root）：
 
-```sql
-CREATE USER IF NOT EXISTS 'campuspulse'@'localhost' IDENTIFIED BY 'campuspulse';
-GRANT ALL PRIVILEGES ON campuspulse.* TO 'campuspulse'@'localhost';
-FLUSH PRIVILEGES;
+```bat
+cmd /c "mysql -u root -p < create_app_user.sql"
 ```
 
-服务端启动时设置：
+该脚本创建 `campuspulse` / `campuspulse`，并只授予 `campuspulse.*` 权限。服务端启动时设置：
 
 ```powershell
 $env:DB_USERNAME='campuspulse'
