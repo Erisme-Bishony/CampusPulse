@@ -2,6 +2,35 @@
 
 CampusPulse 的 MySQL 8 建库、建表、索引与演示数据脚本。
 
+## 一键初始化
+
+在 `CampusPulseDatabase` 目录下执行：
+
+```bat
+cmd /c "mysql -u root -p < init.sql"
+```
+
+PowerShell 用：
+
+```powershell
+Get-Content init.sql | mysql -u root -p
+```
+
+`init.sql` 会按顺序执行建库、建表、索引、种子数据，并打印各表数量。执行成功后再为应用创建专用账号（避免服务端使用 root）：
+
+```sql
+CREATE USER IF NOT EXISTS 'campuspulse'@'localhost' IDENTIFIED BY 'campuspulse';
+GRANT ALL PRIVILEGES ON campuspulse.* TO 'campuspulse'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+服务端启动时设置：
+
+```powershell
+$env:DB_USERNAME='campuspulse'
+$env:DB_PASSWORD='campuspulse'
+```
+
 ## 执行顺序
 
 在仓库根目录打开终端，按顺序执行：
