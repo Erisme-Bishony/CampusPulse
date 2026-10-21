@@ -21,8 +21,8 @@ GET http://localhost:8081/api/v1/health
 {"status":"UP","db":"UP","service":"CampusPulseServer","timestamp":"2026-10-21 18:21:52"}
 ```
 
-- 已完成：注册、登录、退出、当前用户、修改资料、兴趣标签读写。
-- 正在做：标签、活动列表/详情/搜索筛选、报名/取消、我的报名。
+- 已完成：注册、登录、退出、当前用户、修改资料、兴趣标签读写；标签、活动列表/详情/搜索筛选。
+- 正在做：报名/取消、我的报名。
 - 管理后台、推荐、行为统计排在活动与报名之后。
 
 ### Android 模拟器怎么连
@@ -50,7 +50,7 @@ http://<电脑局域网IP>:8081/
 ```json
 {
   "code": 0,
-  "message": "OK",
+  "message": "ok",
   "data": {},
   "timestamp": "2026-10-21 18:21:52"
 }
@@ -67,7 +67,7 @@ http://<电脑局域网IP>:8081/
 ```json
 {
   "code": 0,
-  "message": "OK",
+  "message": "ok",
   "data": {
     "token": "eyJhbGciOiJIUzI1NiJ9...",
     "user": {
@@ -228,9 +228,9 @@ Content-Type: application/json
 
 ---
 
-## 4. 活动与标签接口（10-21 至 10-23 实现，字段先冻结）
+## 4. 活动与标签接口（10-21 已实现，字段冻结）
 
-> 以下字段按本说明实现；如果实现中发现必须调整，B 会先通知 A，不单方面改。
+> 以下字段已在真实 MySQL 上验证；如果后续必须调整，B 会先通知 A，不单方面改。
 
 ### 4.1 标签列表
 
@@ -242,7 +242,7 @@ GET /api/v1/tags
 
 ```json
 [
-  {"id": 1, "name": "讲座", "color": "#4A90D9"},
+  {"id": 1, "name": "学术讲座", "color": "#4A90D9"},
   {"id": 2, "name": "文艺", "color": "#E67E22"}
 ]
 ```
@@ -250,7 +250,7 @@ GET /api/v1/tags
 ### 4.2 活动列表 / 搜索 / 筛选
 
 ```http
-GET /api/v1/activities?page=1&size=10&keyword=讲座&tagId=1&type=LECTURE&date=2026-10-25
+GET /api/v1/activities?page=1&size=10&keyword=讲座&tagId=1&type=讲座&date=2026-10-25
 ```
 
 参数都可选：
@@ -261,7 +261,7 @@ GET /api/v1/activities?page=1&size=10&keyword=讲座&tagId=1&type=LECTURE&date=2
 | `size` | 每页数量，最大 50 |
 | `keyword` | 标题/描述/地点/类型关键词；中文至少 2 个字 |
 | `tagId` | 按标签筛选 |
-| `type` | 活动类型，如 `LECTURE`、`SPORTS`、`CLUB` |
+| `type` | 活动类型中文名，如 `讲座`、`比赛`、`招新`、`演出`；当前数据里还有 `志愿`、`沙龙`、`宣讲`、`工作坊`、`市集` |
 | `date` | 活动开始日期，格式 `yyyy-MM-dd` |
 
 `data`：
@@ -272,7 +272,7 @@ GET /api/v1/activities?page=1&size=10&keyword=讲座&tagId=1&type=LECTURE&date=2
     {
       "id": 1,
       "title": "人工智能前沿讲座",
-      "type": "LECTURE",
+      "type": "讲座",
       "location": "图书馆报告厅",
       "startTime": "2026-10-25 19:00:00",
       "endTime": "2026-10-25 21:00:00",
@@ -283,7 +283,7 @@ GET /api/v1/activities?page=1&size=10&keyword=讲座&tagId=1&type=LECTURE&date=2
       "coverUrl": "https://example.com/cover.jpg",
       "status": "PUBLISHED",
       "tags": [
-        {"id": 1, "name": "讲座", "color": "#4A90D9"}
+        {"id": 1, "name": "学术讲座", "color": "#4A90D9"}
       ]
     }
   ],
