@@ -1,3 +1,14 @@
+# Local Maven repository and machine-specific settings
+.m2repo/
+.mvn/settings-aliyun.xml
+
+# Temporary MySQL instance used for local validation
+.mysqltest/
+
+# Local tooling caches and temporary directories
+.pylibs/
+.tmp/
+
 # IDE and build output
 **/.idea/
 **/*.iml
