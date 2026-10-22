@@ -1,0 +1,30 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: CampusPulseServer
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/campuspulse?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:campuspulse}
+    password: ${DB_PASSWORD:campuspulse}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:campuspulse-dev-secret-change-me-please-32bytes}
+    expire-days: 7
+
+logging:
+  level:
+    com.campuspulse: INFO
