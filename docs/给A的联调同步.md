@@ -4,6 +4,8 @@
 服务端分支：`2026.10.21.B`
 服务端代码：`CampusPulseServer/`
 数据库脚本：`CampusPulseDatabase/`
+机器可读契约：`docs/openapi.json`
+Apifox 导入：`docs/Apifox使用说明.md`
 
 ---
 
@@ -480,7 +482,7 @@ admin / admin123
 
 - 10-21 晚：标签接口、活动列表/详情、搜索筛选，补 MockMvc 测试。
 - 10-22：报名/取消/我的报名，事务和并发测试；接口联调。
-- 10-23：修联调问题；补 `docs/API.md` 和 Postman 集合。
+- 10-23：修联调问题；补 `docs/openapi.json` 和 Apifox 导入说明（不再依赖 Postman）。
 - 10-24 起：推荐、管理后台、行为统计；同时推进报告。
 
 > 10-22 更新：报名接口已完成，MockMvc 覆盖报名、重复报名、满额、截止、取消、重新报名、未登录、我的报名、并发抢名额；真实 MySQL 也已走通。A 可以直接按第 4 节接。
