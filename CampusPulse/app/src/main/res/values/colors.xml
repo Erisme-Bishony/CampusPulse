@@ -9,4 +9,5 @@
     <color name="line">#E5E3DC</color>
     <color name="khaki">#D8CFBE</color>
     <color name="khaki_light">#EFEAE0</color>
+    <color name="error">#9E574D</color>
 </resources>
