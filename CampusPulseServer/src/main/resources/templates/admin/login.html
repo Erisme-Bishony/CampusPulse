@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head('登录')}"></head>
+<body>
+<div class="login-wrap">
+    <div class="login-card">
+        <h1>CampusPulse 管理后台</h1>
+        <p>管理员登录后可维护活动、标签并查看统计。</p>
+        <div class="flash error" th:if="${error}" th:text="${error}"></div>
+        <form th:action="@{/admin/login}" method="post">
+            <div class="field">
+                <label for="username">管理员账号</label>
+                <input id="username" name="username" type="text" autocomplete="username"
+                       th:value="${username}" placeholder="admin" required autofocus>
+            </div>
+            <div class="field">
+                <label for="password">密码</label>
+                <input id="password" name="password" type="password" autocomplete="current-password"
+                       placeholder="请输入密码" required>
+            </div>
+            <button class="btn primary" type="submit">登录</button>
+        </form>
+        <div class="login-foot">仅限课程项目管理员使用</div>
+    </div>
+</div>
+</body>
+</html>

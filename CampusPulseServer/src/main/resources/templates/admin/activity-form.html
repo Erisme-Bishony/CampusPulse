@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head('活动')}"></head>
+<body>
+<header th:replace="~{admin/fragments :: nav('activities')}"></header>
+
+<main class="page">
+    <div class="page-head">
+        <div>
+            <h1 th:text="${editing} ? '编辑活动' : '新建活动'">新建活动</h1>
+            <p>保存后立即生效；草稿不会进入 Android 活动列表。</p>
+        </div>
+        <a class="btn" th:href="@{/admin/activities}">返回列表</a>
+    </div>
+
+    <div class="flash error" th:if="${error}" th:text="${error}"></div>
+
+    <section class="panel">
+        <form th:action="@{/admin/activities/save}" method="post">
+            <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
+            <input type="hidden" name="id" th:value="${form.id}">
+
+            <div class="form-grid">
+                <div class="full">
+                    <label for="title">活动标题</label>
+                    <input id="title" name="title" type="text" maxlength="120"
+                           th:value="${form.title}" required>
+                </div>
+                <div class="full">
+                    <label for="description">活动介绍</label>
+                    <textarea id="description" name="description" required
+                              th:text="${form.description}"></textarea>
+                </div>
+                <div>
+                    <label for="type">分类</label>
+                    <select id="type" name="type" required>
+                        <option th:each="t : ${types}"
+                                th:value="${t}" th:text="${t}"
+                                th:selected="${form.type == t}"></option>
+                    </select>
+                </div>
+                <div>
+                    <label for="location">地点</label>
+                    <input id="location" name="location" type="text" maxlength="120"
+                           th:value="${form.location}" required>
+                </div>
+                <div>
+                    <label for="startTime">开始时间</label>
+                    <input id="startTime" name="startTime" type="datetime-local"
+                           th:value="${form.startTime}" required>
+                </div>
+                <div>
+                    <label for="endTime">结束时间</label>
+                    <input id="endTime" name="endTime" type="datetime-local"
+                           th:value="${form.endTime}" required>
+                </div>
+                <div>
+                    <label for="signupDeadline">报名截止时间</label>
+                    <input id="signupDeadline" name="signupDeadline" type="datetime-local"
+                           th:value="${form.signupDeadline}" required>
+                </div>
+                <div>
+                    <label for="capacity">容量</label>
+                    <input id="capacity" name="capacity" type="number" min="1" max="100000"
+                           th:value="${form.capacity}" required>
+                    <div class="hint">不能小于当前已报名人数。</div>
+                </div>
+                <div>
+                    <label for="organizer">主办方</label>
+                    <input id="organizer" name="organizer" type="text" maxlength="100"
+                           th:value="${form.organizer}">
+                </div>
+                <div>
+                    <label for="coverUrl">封面图片 URL</label>
+                    <input id="coverUrl" name="coverUrl" type="text" maxlength="255"
+                           th:value="${form.coverUrl}" placeholder="https://...">
+                </div>
+                <div>
+                    <label for="status">状态</label>
+                    <select id="status" name="status">
+                        <option value="PUBLISHED" th:selected="${form.status == 'PUBLISHED'}">已发布</option>
+                        <option value="DRAFT" th:selected="${form.status == 'DRAFT'}">草稿</option>
+                    </select>
+                </div>
+                <div class="full">
+                    <label>标签</label>
+                    <div class="checkbox-grid">
+                        <label th:each="tag : ${tags}">
+                            <input type="checkbox" name="tagIds" th:value="${tag.id}"
+                                   th:checked="${form.tagIds != null and #lists.contains(form.tagIds, tag.id)}">
+                            <span th:text="${tag.name}">标签</span>
+                        </label>
+                    </div>
+                    <div class="hint">可不选；建议至少选一个，便于推荐。</div>
+                </div>
+            </div>
+
+            <div class="toolbar" style="margin-top:18px">
+                <button class="btn primary" type="submit">保存活动</button>
+                <a class="btn" th:href="@{/admin/activities}">取消</a>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

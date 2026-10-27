@@ -23,6 +23,14 @@ public interface ActivityRepository extends JpaRepository<Activity, Long>, JpaSp
 
     List<Activity> findTop200ByStatusAndStartTimeAfterOrderByStartTimeAsc(String status, LocalDateTime startTime);
 
+    List<Activity> findTop5ByStatusAndStartTimeAfterOrderByStartTimeAsc(String status, LocalDateTime startTime);
+
+    List<Activity> findTop5ByOrderByCreatedAtDesc();
+
+    long countByStatus(String status);
+
+    long countByStatusAndStartTimeAfter(String status, LocalDateTime startTime);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Activity a set a.viewCount = a.viewCount + 1 where a.id = :id")
     int incrementViewCount(@Param("id") Long id);
