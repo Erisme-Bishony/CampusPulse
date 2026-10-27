@@ -12,4 +12,6 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     Optional<Registration> findByUserIdAndActivityId(Long userId, Long activityId);
 
     List<Registration> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    List<Registration> findByUserIdAndStatus(Long userId, String status);
 }

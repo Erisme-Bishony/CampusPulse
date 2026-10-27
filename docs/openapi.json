@@ -16,16 +16,33 @@
     }
   ],
   "tags": [
-    {"name": "系统", "description": "健康检查"},
-    {"name": "认证", "description": "注册、登录、退出"},
-    {"name": "用户", "description": "当前用户资料、兴趣、报名"},
-    {"name": "标签", "description": "活动兴趣标签"},
-    {"name": "活动", "description": "浏览、搜索、筛选、报名"}
+    {
+      "name": "系统",
+      "description": "健康检查"
+    },
+    {
+      "name": "认证",
+      "description": "注册、登录、退出"
+    },
+    {
+      "name": "用户",
+      "description": "当前用户资料、兴趣、报名"
+    },
+    {
+      "name": "标签",
+      "description": "活动兴趣标签"
+    },
+    {
+      "name": "活动",
+      "description": "浏览、搜索、筛选、报名"
+    }
   ],
   "paths": {
     "/api/v1/health": {
       "get": {
-        "tags": ["系统"],
+        "tags": [
+          "系统"
+        ],
         "summary": "健康检查",
         "operationId": "health",
         "responses": {
@@ -33,24 +50,32 @@
             "description": "服务与数据库状态",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/HealthEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/HealthEnvelope"
+                }
               }
             }
           },
-          "500": {"$ref": "#/components/responses/InternalError"}
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
         }
       }
     },
     "/api/v1/auth/register": {
       "post": {
-        "tags": ["认证"],
+        "tags": [
+          "认证"
+        ],
         "summary": "用户注册",
         "operationId": "register",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {"$ref": "#/components/schemas/RegisterRequest"}
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
             }
           }
         },
@@ -59,25 +84,35 @@
             "description": "注册成功，直接返回 token",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/AuthEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/AuthEnvelope"
+                }
               }
             }
           },
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "409": {"$ref": "#/components/responses/Conflict"}
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
         }
       }
     },
     "/api/v1/auth/login": {
       "post": {
-        "tags": ["认证"],
+        "tags": [
+          "认证"
+        ],
         "summary": "用户登录",
         "operationId": "login",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {"$ref": "#/components/schemas/LoginRequest"}
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
             }
           }
         },
@@ -86,18 +121,26 @@
             "description": "登录成功",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/AuthEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/AuthEnvelope"
+                }
               }
             }
           },
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "401": {"$ref": "#/components/responses/Unauthorized"}
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       }
     },
     "/api/v1/auth/logout": {
       "post": {
-        "tags": ["认证"],
+        "tags": [
+          "认证"
+        ],
         "summary": "退出登录",
         "description": "服务端无状态，客户端删除本地 token 即可。",
         "operationId": "logout",
@@ -106,7 +149,9 @@
             "description": "退出成功",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/VoidEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/VoidEnvelope"
+                }
               }
             }
           }
@@ -115,32 +160,50 @@
     },
     "/api/v1/users/me": {
       "get": {
-        "tags": ["用户"],
+        "tags": [
+          "用户"
+        ],
         "summary": "当前用户资料",
         "operationId": "me",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "当前用户",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/UserEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/UserEnvelope"
+                }
               }
             }
           },
-          "401": {"$ref": "#/components/responses/Unauthorized"}
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       },
       "put": {
-        "tags": ["用户"],
+        "tags": [
+          "用户"
+        ],
         "summary": "修改资料",
         "operationId": "updateProfile",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {"$ref": "#/components/schemas/UpdateProfileRequest"}
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
             }
           }
         },
@@ -149,43 +212,67 @@
             "description": "修改后的用户",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/UserEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/UserEnvelope"
+                }
               }
             }
           },
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "401": {"$ref": "#/components/responses/Unauthorized"}
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       }
     },
     "/api/v1/users/me/interests": {
       "get": {
-        "tags": ["用户"],
+        "tags": [
+          "用户"
+        ],
         "summary": "读取兴趣标签",
         "operationId": "getInterests",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "标签 ID 列表",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/IntListEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/IntListEnvelope"
+                }
               }
             }
           },
-          "401": {"$ref": "#/components/responses/Unauthorized"}
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       },
       "put": {
-        "tags": ["用户"],
+        "tags": [
+          "用户"
+        ],
         "summary": "覆盖兴趣标签",
         "operationId": "updateInterests",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": {"$ref": "#/components/schemas/UpdateInterestsRequest"}
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInterestsRequest"
+              }
             }
           }
         },
@@ -194,38 +281,56 @@
             "description": "修改后的用户",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/UserEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/UserEnvelope"
+                }
               }
             }
           },
-          "400": {"$ref": "#/components/responses/BadRequest"},
-          "401": {"$ref": "#/components/responses/Unauthorized"}
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       }
     },
     "/api/v1/users/me/registrations": {
       "get": {
-        "tags": ["用户"],
+        "tags": [
+          "用户"
+        ],
         "summary": "我的报名",
         "description": "返回该用户全部报名记录，包含 CANCELLED 历史；只显示有效报名时按 status=REGISTERED 过滤。",
         "operationId": "myRegistrations",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "报名记录列表",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/MyRegistrationListEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/MyRegistrationListEnvelope"
+                }
               }
             }
           },
-          "401": {"$ref": "#/components/responses/Unauthorized"}
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       }
     },
     "/api/v1/tags": {
       "get": {
-        "tags": ["标签"],
+        "tags": [
+          "标签"
+        ],
         "summary": "标签列表",
         "operationId": "listTags",
         "responses": {
@@ -233,7 +338,9 @@
             "description": "按 sort_order 排序的标签",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/TagListEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/TagListEnvelope"
+                }
               }
             }
           }
@@ -242,7 +349,9 @@
     },
     "/api/v1/activities": {
       "get": {
-        "tags": ["活动"],
+        "tags": [
+          "活动"
+        ],
         "summary": "活动列表、搜索与筛选",
         "operationId": "listActivities",
         "parameters": [
@@ -251,21 +360,29 @@
             "in": "query",
             "required": false,
             "description": "标题/描述/地点/类型关键词；中文至少 2 个字",
-            "schema": {"type": "string", "minLength": 2}
+            "schema": {
+              "type": "string",
+              "minLength": 2
+            }
           },
           {
             "name": "tagId",
             "in": "query",
             "required": false,
             "description": "标签 ID",
-            "schema": {"type": "integer", "format": "int32"}
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
           },
           {
             "name": "type",
             "in": "query",
             "required": false,
             "description": "活动类型，如 讲座、比赛、招新、演出",
-            "schema": {"type": "string"},
+            "schema": {
+              "type": "string"
+            },
             "example": "讲座"
           },
           {
@@ -273,21 +390,33 @@
             "in": "query",
             "required": false,
             "description": "活动开始日期，yyyy-MM-dd",
-            "schema": {"type": "string", "format": "date"},
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
             "example": "2026-10-25"
           },
           {
             "name": "page",
             "in": "query",
             "required": false,
-            "schema": {"type": "integer", "minimum": 1, "default": 1}
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
           },
           {
             "name": "size",
             "in": "query",
             "required": false,
             "description": "每页数量，最大 50",
-            "schema": {"type": "integer", "minimum": 1, "maximum": 50, "default": 10}
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
           }
         ],
         "responses": {
@@ -295,17 +424,23 @@
             "description": "分页活动列表，只含 PUBLISHED",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/ActivityPageEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityPageEnvelope"
+                }
               }
             }
           },
-          "400": {"$ref": "#/components/responses/BadRequest"}
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
         }
       }
     },
     "/api/v1/activities/{id}": {
       "get": {
-        "tags": ["活动"],
+        "tags": [
+          "活动"
+        ],
         "summary": "活动详情",
         "operationId": "getActivity",
         "parameters": [
@@ -314,7 +449,10 @@
             "in": "path",
             "required": true,
             "description": "活动 ID",
-            "schema": {"type": "integer", "format": "int64"}
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
@@ -322,27 +460,40 @@
             "description": "活动详情",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/ActivityDetailEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityDetailEnvelope"
+                }
               }
             }
           },
-          "404": {"$ref": "#/components/responses/NotFound"}
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
         }
       }
     },
     "/api/v1/activities/{id}/registrations": {
       "post": {
-        "tags": ["活动"],
+        "tags": [
+          "活动"
+        ],
         "summary": "报名",
         "operationId": "registerActivity",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "description": "活动 ID",
-            "schema": {"type": "integer", "format": "int64"}
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
@@ -350,28 +501,45 @@
             "description": "报名成功",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/RegistrationEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationEnvelope"
+                }
               }
             }
           },
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "404": {"$ref": "#/components/responses/NotFound"},
-          "409": {"$ref": "#/components/responses/Conflict"}
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
         }
       },
       "delete": {
-        "tags": ["活动"],
+        "tags": [
+          "活动"
+        ],
         "summary": "取消报名",
         "description": "幂等；未报名或已经取消也返回成功。",
         "operationId": "cancelRegistration",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "description": "活动 ID",
-            "schema": {"type": "integer", "format": "int64"}
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
@@ -379,28 +547,43 @@
             "description": "取消成功",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/VoidEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/VoidEnvelope"
+                }
               }
             }
           },
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "404": {"$ref": "#/components/responses/NotFound"}
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
         }
       }
     },
     "/api/v1/activities/{id}/registration-status": {
       "get": {
-        "tags": ["活动"],
+        "tags": [
+          "活动"
+        ],
         "summary": "我的报名状态",
         "operationId": "registrationStatus",
-        "security": [{"bearerAuth": []}],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
             "description": "活动 ID",
-            "schema": {"type": "integer", "format": "int64"}
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
@@ -408,12 +591,111 @@
             "description": "报名状态",
             "content": {
               "application/json": {
-                "schema": {"$ref": "#/components/schemas/RegistrationStatusEnvelope"}
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationStatusEnvelope"
+                }
               }
             }
           },
-          "401": {"$ref": "#/components/responses/Unauthorized"},
-          "404": {"$ref": "#/components/responses/NotFound"}
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/behaviors": {
+      "post": {
+        "tags": [
+          "行为"
+        ],
+        "summary": "记录浏览、分享或停留时长",
+        "description": "VIEW/SHARE 同时原子累加活动计数；DURATION 只保存停留秒数，要求大于 0。",
+        "operationId": "recordBehavior",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BehaviorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "记录成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BehaviorEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/recommendations": {
+      "get": {
+        "tags": [
+          "推荐"
+        ],
+        "summary": "获取个性化推荐",
+        "description": "有标签：0.7 内容相似度 + 0.3 热度；无标签冷启动只用热度。过滤已报名、已结束和非 PUBLISHED 活动；每次请求重算并写入 recommendation 表。",
+        "operationId": "listRecommendations",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "返回数量，1-20，默认 10",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "按分数降序的推荐列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationListEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       }
     }
@@ -431,7 +713,9 @@
         "description": "参数校验失败（40001）",
         "content": {
           "application/json": {
-            "schema": {"$ref": "#/components/schemas/ApiError"}
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
           }
         }
       },
@@ -439,7 +723,9 @@
         "description": "未登录、token 无效或用户名密码错误（40101/40102）",
         "content": {
           "application/json": {
-            "schema": {"$ref": "#/components/schemas/ApiError"}
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
           }
         }
       },
@@ -447,7 +733,9 @@
         "description": "资源不存在（40401）",
         "content": {
           "application/json": {
-            "schema": {"$ref": "#/components/schemas/ApiError"}
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
           }
         }
       },
@@ -455,7 +743,9 @@
         "description": "业务冲突：40901 用户名已存在、40902 已报名、40903 名额已满、40904 报名截止",
         "content": {
           "application/json": {
-            "schema": {"$ref": "#/components/schemas/ApiError"}
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
           }
         }
       },
@@ -463,7 +753,9 @@
         "description": "服务器内部错误（50000）",
         "content": {
           "application/json": {
-            "schema": {"$ref": "#/components/schemas/ApiError"}
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
           }
         }
       }
@@ -471,249 +763,824 @@
     "schemas": {
       "ApiResponse": {
         "type": "object",
-        "required": ["code", "message", "timestamp"],
+        "required": [
+          "code",
+          "message",
+          "timestamp"
+        ],
         "properties": {
-          "code": {"type": "integer", "example": 0, "description": "0=成功，非 0 为错误码"},
-          "message": {"type": "string", "example": "ok"},
-          "data": {"nullable": true, "description": "业务数据，失败时为 null"},
-          "timestamp": {"type": "string", "example": "2026-10-22 09:00:00"}
+          "code": {
+            "type": "integer",
+            "example": 0,
+            "description": "0=成功，非 0 为错误码"
+          },
+          "message": {
+            "type": "string",
+            "example": "ok"
+          },
+          "data": {
+            "nullable": true,
+            "description": "业务数据，失败时为 null"
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2026-10-22 09:00:00"
+          }
         }
       },
       "ApiError": {
         "type": "object",
-        "required": ["code", "message", "timestamp"],
+        "required": [
+          "code",
+          "message",
+          "timestamp"
+        ],
         "properties": {
-          "code": {"type": "integer", "example": 40902},
-          "message": {"type": "string", "example": "已报名，不能重复报名"},
-          "data": {"nullable": true, "example": null},
-          "timestamp": {"type": "string", "example": "2026-10-22 09:00:00"}
+          "code": {
+            "type": "integer",
+            "example": 40902
+          },
+          "message": {
+            "type": "string",
+            "example": "已报名，不能重复报名"
+          },
+          "data": {
+            "nullable": true,
+            "example": null
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2026-10-22 09:00:00"
+          }
         }
       },
       "HealthEnvelope": {
         "allOf": [
-          {"$ref": "#/components/schemas/ApiResponse"},
-          {"type": "object", "properties": {"data": {"$ref": "#/components/schemas/HealthData"}}}
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/HealthData"
+              }
+            }
+          }
         ]
       },
       "HealthData": {
         "type": "object",
-        "required": ["status", "db", "service", "timestamp"],
+        "required": [
+          "status",
+          "db",
+          "service",
+          "timestamp"
+        ],
         "properties": {
-          "status": {"type": "string", "example": "UP"},
-          "db": {"type": "string", "example": "UP"},
-          "service": {"type": "string", "example": "CampusPulseServer"},
-          "timestamp": {"type": "string", "example": "2026-10-22 09:00:00"}
+          "status": {
+            "type": "string",
+            "example": "UP"
+          },
+          "db": {
+            "type": "string",
+            "example": "UP"
+          },
+          "service": {
+            "type": "string",
+            "example": "CampusPulseServer"
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2026-10-22 09:00:00"
+          }
         }
       },
       "AuthEnvelope": {
         "allOf": [
-          {"$ref": "#/components/schemas/ApiResponse"},
-          {"type": "object", "properties": {"data": {"$ref": "#/components/schemas/AuthData"}}}
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/AuthData"
+              }
+            }
+          }
         ]
       },
       "AuthData": {
         "type": "object",
-        "required": ["token", "user"],
+        "required": [
+          "token",
+          "user"
+        ],
         "properties": {
-          "token": {"type": "string", "description": "JWT，有效期 7 天"},
-          "user": {"$ref": "#/components/schemas/UserData"}
+          "token": {
+            "type": "string",
+            "description": "JWT，有效期 7 天"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserData"
+          }
         }
       },
       "UserEnvelope": {
         "allOf": [
-          {"$ref": "#/components/schemas/ApiResponse"},
-          {"type": "object", "properties": {"data": {"$ref": "#/components/schemas/UserData"}}}
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/UserData"
+              }
+            }
+          }
         ]
       },
       "UserData": {
         "type": "object",
-        "required": ["id", "username", "role", "tagIds"],
+        "required": [
+          "id",
+          "username",
+          "role",
+          "tagIds"
+        ],
         "properties": {
-          "id": {"type": "integer", "format": "int64"},
-          "username": {"type": "string", "example": "student01"},
-          "email": {"type": "string", "nullable": true},
-          "phone": {"type": "string", "nullable": true},
-          "role": {"type": "string", "example": "USER"},
-          "tagIds": {"type": "array", "items": {"type": "integer", "format": "int32"}}
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "username": {
+            "type": "string",
+            "example": "student01"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "example": "USER"
+          },
+          "tagIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
         }
       },
       "IntListEnvelope": {
         "allOf": [
-          {"$ref": "#/components/schemas/ApiResponse"},
-          {"type": "object", "properties": {"data": {"type": "array", "items": {"type": "integer", "format": "int32"}}}}
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
         ]
       },
       "VoidEnvelope": {
         "allOf": [
-          {"$ref": "#/components/schemas/ApiResponse"},
-          {"type": "object", "properties": {"data": {"nullable": true, "example": null}}}
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "nullable": true,
+                "example": null
+              }
+            }
+          }
         ]
       },
       "TagListEnvelope": {
         "allOf": [
-          {"$ref": "#/components/schemas/ApiResponse"},
-          {"type": "object", "properties": {"data": {"type": "array", "items": {"$ref": "#/components/schemas/TagData"}}}}
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TagData"
+                }
+              }
+            }
+          }
         ]
       },
       "TagData": {
         "type": "object",
-        "required": ["id", "name", "color"],
+        "required": [
+          "id",
+          "name",
+          "color"
+        ],
         "properties": {
-          "id": {"type": "integer", "format": "int32"},
-          "name": {"type": "string", "example": "学术讲座"},
-          "color": {"type": "string", "example": "#4A90D9"}
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "example": "学术讲座"
+          },
+          "color": {
+            "type": "string",
+            "example": "#4A90D9"
+          }
         }
       },
       "ActivityPageEnvelope": {
         "allOf": [
-          {"$ref": "#/components/schemas/ApiResponse"},
-          {"type": "object", "properties": {"data": {"$ref": "#/components/schemas/ActivityPage"}}}
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/ActivityPage"
+              }
+            }
+          }
         ]
       },
       "ActivityPage": {
         "type": "object",
-        "required": ["items", "total", "page", "size", "totalPages"],
+        "required": [
+          "items",
+          "total",
+          "page",
+          "size",
+          "totalPages"
+        ],
         "properties": {
-          "items": {"type": "array", "items": {"$ref": "#/components/schemas/ActivitySummary"}},
-          "total": {"type": "integer", "format": "int64", "example": 12},
-          "page": {"type": "integer", "example": 1},
-          "size": {"type": "integer", "example": 10},
-          "totalPages": {"type": "integer", "example": 2}
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivitySummary"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "example": 12
+          },
+          "page": {
+            "type": "integer",
+            "example": 1
+          },
+          "size": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 2
+          }
         }
       },
       "ActivitySummary": {
         "type": "object",
-        "required": ["id", "title", "type", "location", "startTime", "endTime", "signupDeadline", "capacity", "signupCount", "remaining", "status", "tags"],
+        "required": [
+          "id",
+          "title",
+          "type",
+          "location",
+          "startTime",
+          "endTime",
+          "signupDeadline",
+          "capacity",
+          "signupCount",
+          "remaining",
+          "status",
+          "tags"
+        ],
         "properties": {
-          "id": {"type": "integer", "format": "int64"},
-          "title": {"type": "string", "example": "人工智能前沿讲座"},
-          "type": {"type": "string", "example": "讲座"},
-          "location": {"type": "string", "example": "图书馆报告厅"},
-          "startTime": {"type": "string", "example": "2026-10-25 19:00:00"},
-          "endTime": {"type": "string", "example": "2026-10-25 21:00:00"},
-          "signupDeadline": {"type": "string", "example": "2026-10-24 19:00:00"},
-          "capacity": {"type": "integer", "example": 120},
-          "signupCount": {"type": "integer", "example": 36},
-          "remaining": {"type": "integer", "example": 84},
-          "coverUrl": {"type": "string", "nullable": true},
-          "status": {"type": "string", "example": "PUBLISHED"},
-          "tags": {"type": "array", "items": {"$ref": "#/components/schemas/TagData"}}
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string",
+            "example": "人工智能前沿讲座"
+          },
+          "type": {
+            "type": "string",
+            "example": "讲座"
+          },
+          "location": {
+            "type": "string",
+            "example": "图书馆报告厅"
+          },
+          "startTime": {
+            "type": "string",
+            "example": "2026-10-25 19:00:00"
+          },
+          "endTime": {
+            "type": "string",
+            "example": "2026-10-25 21:00:00"
+          },
+          "signupDeadline": {
+            "type": "string",
+            "example": "2026-10-24 19:00:00"
+          },
+          "capacity": {
+            "type": "integer",
+            "example": 120
+          },
+          "signupCount": {
+            "type": "integer",
+            "example": 36
+          },
+          "remaining": {
+            "type": "integer",
+            "example": 84
+          },
+          "coverUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "example": "PUBLISHED"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagData"
+            }
+          }
         }
       },
       "ActivityDetailEnvelope": {
         "allOf": [
-          {"$ref": "#/components/schemas/ApiResponse"},
-          {"type": "object", "properties": {"data": {"$ref": "#/components/schemas/ActivityDetail"}}}
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/ActivityDetail"
+              }
+            }
+          }
         ]
       },
       "ActivityDetail": {
         "allOf": [
-          {"$ref": "#/components/schemas/ActivitySummary"},
+          {
+            "$ref": "#/components/schemas/ActivitySummary"
+          },
           {
             "type": "object",
-            "required": ["description", "viewCount", "shareCount", "createdAt", "updatedAt"],
+            "required": [
+              "description",
+              "viewCount",
+              "shareCount",
+              "createdAt",
+              "updatedAt"
+            ],
             "properties": {
-              "description": {"type": "string"},
-              "organizer": {"type": "string", "nullable": true},
-              "viewCount": {"type": "integer", "example": 86},
-              "shareCount": {"type": "integer", "example": 5},
-              "createdAt": {"type": "string", "example": "2026-10-20 10:00:00"},
-              "updatedAt": {"type": "string", "example": "2026-10-20 10:00:00"}
+              "description": {
+                "type": "string"
+              },
+              "organizer": {
+                "type": "string",
+                "nullable": true
+              },
+              "viewCount": {
+                "type": "integer",
+                "example": 86
+              },
+              "shareCount": {
+                "type": "integer",
+                "example": 5
+              },
+              "createdAt": {
+                "type": "string",
+                "example": "2026-10-20 10:00:00"
+              },
+              "updatedAt": {
+                "type": "string",
+                "example": "2026-10-20 10:00:00"
+              }
             }
           }
         ]
       },
       "RegistrationEnvelope": {
         "allOf": [
-          {"$ref": "#/components/schemas/ApiResponse"},
-          {"type": "object", "properties": {"data": {"$ref": "#/components/schemas/RegistrationData"}}}
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/RegistrationData"
+              }
+            }
+          }
         ]
       },
       "RegistrationData": {
         "type": "object",
-        "required": ["id", "activityId", "status", "createdAt"],
+        "required": [
+          "id",
+          "activityId",
+          "status",
+          "createdAt"
+        ],
         "properties": {
-          "id": {"type": "integer", "format": "int64", "example": 23},
-          "activityId": {"type": "integer", "format": "int64", "example": 1},
-          "status": {"type": "string", "enum": ["REGISTERED", "CANCELLED"], "example": "REGISTERED"},
-          "createdAt": {"type": "string", "example": "2026-10-22 09:00:00"}
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 23
+          },
+          "activityId": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REGISTERED",
+              "CANCELLED"
+            ],
+            "example": "REGISTERED"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-10-22 09:00:00"
+          }
         }
       },
       "RegistrationStatusEnvelope": {
         "allOf": [
-          {"$ref": "#/components/schemas/ApiResponse"},
-          {"type": "object", "properties": {"data": {"$ref": "#/components/schemas/RegistrationStatusData"}}}
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/RegistrationStatusData"
+              }
+            }
+          }
         ]
       },
       "RegistrationStatusData": {
         "type": "object",
-        "required": ["registered", "status"],
+        "required": [
+          "registered",
+          "status"
+        ],
         "properties": {
-          "registered": {"type": "boolean", "example": true},
-          "status": {"type": "string", "enum": ["REGISTERED", "CANCELLED", "NONE"], "example": "REGISTERED"}
+          "registered": {
+            "type": "boolean",
+            "example": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REGISTERED",
+              "CANCELLED",
+              "NONE"
+            ],
+            "example": "REGISTERED"
+          }
         }
       },
       "MyRegistrationListEnvelope": {
         "allOf": [
-          {"$ref": "#/components/schemas/ApiResponse"},
-          {"type": "object", "properties": {"data": {"type": "array", "items": {"$ref": "#/components/schemas/MyRegistrationData"}}}}
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MyRegistrationData"
+                }
+              }
+            }
+          }
         ]
       },
       "MyRegistrationData": {
         "type": "object",
-        "required": ["id", "status", "createdAt", "activity"],
+        "required": [
+          "id",
+          "status",
+          "createdAt",
+          "activity"
+        ],
         "properties": {
-          "id": {"type": "integer", "format": "int64"},
-          "status": {"type": "string", "enum": ["REGISTERED", "CANCELLED"], "example": "REGISTERED"},
-          "createdAt": {"type": "string", "example": "2026-10-22 09:00:00"},
-          "activity": {"$ref": "#/components/schemas/ActivityBrief"}
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REGISTERED",
+              "CANCELLED"
+            ],
+            "example": "REGISTERED"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-10-22 09:00:00"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/ActivityBrief"
+          }
         }
       },
       "ActivityBrief": {
         "type": "object",
-        "required": ["id", "title", "location", "startTime", "endTime", "status"],
+        "required": [
+          "id",
+          "title",
+          "location",
+          "startTime",
+          "endTime",
+          "status"
+        ],
         "properties": {
-          "id": {"type": "integer", "format": "int64"},
-          "title": {"type": "string"},
-          "location": {"type": "string"},
-          "startTime": {"type": "string", "example": "2026-10-25 19:00:00"},
-          "endTime": {"type": "string", "example": "2026-10-25 21:00:00"},
-          "status": {"type": "string", "example": "PUBLISHED"}
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "example": "2026-10-25 19:00:00"
+          },
+          "endTime": {
+            "type": "string",
+            "example": "2026-10-25 21:00:00"
+          },
+          "status": {
+            "type": "string",
+            "example": "PUBLISHED"
+          }
         }
       },
       "RegisterRequest": {
         "type": "object",
-        "required": ["username", "password", "confirmPassword"],
+        "required": [
+          "username",
+          "password",
+          "confirmPassword"
+        ],
         "properties": {
-          "username": {"type": "string", "minLength": 3, "maxLength": 50, "example": "student07"},
-          "password": {"type": "string", "minLength": 6, "maxLength": 64, "format": "password"},
-          "confirmPassword": {"type": "string", "minLength": 6, "maxLength": 64, "format": "password"},
-          "email": {"type": "string", "format": "email", "maxLength": 100, "nullable": true},
-          "phone": {"type": "string", "pattern": "^$|^1\\d{10}$", "nullable": true, "example": "13800138000"},
-          "tagIds": {"type": "array", "items": {"type": "integer", "format": "int32"}, "example": [1, 6]}
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
+            "example": "student07"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 64,
+            "format": "password"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 64,
+            "format": "password"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 100,
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "pattern": "^$|^1\\d{10}$",
+            "nullable": true,
+            "example": "13800138000"
+          },
+          "tagIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": [
+              1,
+              6
+            ]
+          }
         }
       },
       "LoginRequest": {
         "type": "object",
-        "required": ["username", "password"],
+        "required": [
+          "username",
+          "password"
+        ],
         "properties": {
-          "username": {"type": "string", "example": "student01"},
-          "password": {"type": "string", "format": "password", "example": "123456"}
+          "username": {
+            "type": "string",
+            "example": "student01"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "123456"
+          }
         }
       },
       "UpdateProfileRequest": {
         "type": "object",
         "properties": {
-          "email": {"type": "string", "format": "email", "maxLength": 100, "nullable": true},
-          "phone": {"type": "string", "pattern": "^$|^1\\d{10}$", "nullable": true}
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 100,
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "pattern": "^$|^1\\d{10}$",
+            "nullable": true
+          }
         }
       },
       "UpdateInterestsRequest": {
         "type": "object",
-        "required": ["tagIds"],
+        "required": [
+          "tagIds"
+        ],
         "properties": {
-          "tagIds": {"type": "array", "items": {"type": "integer", "format": "int32"}, "example": [1, 2]}
+          "tagIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": [
+              1,
+              2
+            ]
+          }
         }
+      },
+      "BehaviorRequest": {
+        "type": "object",
+        "required": [
+          "activityId",
+          "type"
+        ],
+        "properties": {
+          "activityId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "VIEW",
+              "SHARE",
+              "DURATION"
+            ],
+            "description": "VIEW=浏览，SHARE=分享，DURATION=停留时长"
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "nullable": true,
+            "description": "DURATION 时必填且大于 0；VIEW/SHARE 可省略"
+          }
+        }
+      },
+      "BehaviorData": {
+        "type": "object",
+        "required": [
+          "id",
+          "activityId",
+          "type",
+          "durationSeconds",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "activityId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "type": {
+            "type": "string",
+            "example": "VIEW"
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "example": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-10-27 17:31:00"
+          }
+        }
+      },
+      "BehaviorEnvelope": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/BehaviorData"
+              }
+            }
+          }
+        ]
+      },
+      "RecommendationData": {
+        "type": "object",
+        "required": [
+          "activity",
+          "score",
+          "reason"
+        ],
+        "properties": {
+          "activity": {
+            "$ref": "#/components/schemas/ActivitySummary"
+          },
+          "score": {
+            "type": "number",
+            "format": "double",
+            "example": 0.796
+          },
+          "reason": {
+            "type": "string",
+            "example": "匹配你的兴趣：学术讲座"
+          }
+        }
+      },
+      "RecommendationListEnvelope": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RecommendationData"
+                }
+              }
+            }
+          }
+        ]
       }
     }
   }

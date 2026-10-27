@@ -58,6 +58,10 @@
 | 9 | `POST /api/v1/activities/1/registrations` | 报名 |
 | 10 | `GET /api/v1/users/me/registrations` | 我的报名 |
 | 11 | `DELETE /api/v1/activities/1/registrations` | 取消；再查状态应回到 `NONE` |
+| 12 | `POST /api/v1/behaviors` | body：`{"activityId":1,"type":"VIEW"}` |
+| 13 | `GET /api/v1/recommendations?limit=10` | 推荐列表；换不同兴趣的账号看排序变化 |
+
+OpenAPI 文件当前包含 14 个路径、33 个 schema；如果只导入到一半，重新导入覆盖即可。行为接口的 `type` 可取 `VIEW`、`SHARE`、`DURATION`；`DURATION` 额外带 `durationSeconds`（大于 0）。
 
 活动 3 是满额样例（`signup_count=5`、`capacity=5`），适合验证 `40903`。不要拿它反复报名。
 
