@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head('用户')}"></head>
+<body>
+<header th:replace="~{admin/fragments :: nav('users')}"></header>
+
+<main class="page">
+    <div class="page-head">
+        <div>
+            <h1>用户</h1>
+            <p>Android 端注册用户；管理员账号不在此列表。</p>
+        </div>
+    </div>
+
+    <section class="panel">
+        <table>
+            <thead>
+            <tr>
+                <th class="num">ID</th>
+                <th>用户名</th>
+                <th>邮箱</th>
+                <th>手机</th>
+                <th>状态</th>
+                <th>注册时间</th>
+                <th>最近登录</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${users}">
+                <td class="num" th:text="${user.id}">0</td>
+                <td th:text="${user.username}">username</td>
+                <td th:text="${user.email != null ? user.email : '—'}">—</td>
+                <td th:text="${user.phone != null ? user.phone : '—'}">—</td>
+                <td>
+                    <span class="badge ok" th:if="${user.status == 1}">启用</span>
+                    <span class="badge warn" th:unless="${user.status == 1}">禁用</span>
+                </td>
+                <td th:text="${user.createdAt}">时间</td>
+                <td th:text="${user.lastLoginAt != null ? user.lastLoginAt : '—'}">—</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(users)}">
+                <td colspan="7" class="empty">还没有注册用户</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

@@ -1,9 +1,11 @@
 # CampusPulse 服务端联调说明（给 A）
 
-更新时间：2026-10-21 18:30
+更新时间：2026-10-27 17:31
 服务端分支：`2026.10.21.B`
 服务端代码：`CampusPulseServer/`
 数据库脚本：`CampusPulseDatabase/`
+机器可读契约：`docs/openapi.json`
+Apifox 导入：`docs/Apifox使用说明.md`
 
 ---
 
@@ -21,9 +23,81 @@ GET http://localhost:8081/api/v1/health
 {"status":"UP","db":"UP","service":"CampusPulseServer","timestamp":"2026-10-21 18:21:52"}
 ```
 
-- 已完成：注册、登录、退出、当前用户、修改资料、兴趣标签读写；标签、活动列表/详情/搜索筛选；报名/取消、报名状态、我的报名。
-- 正在做：联调问题修正。
-- 管理后台、推荐、行为统计排在报名之后。
+- 已完成：注册、登录、退出、当前用户、修改资料、兴趣标签读写；标签、活动列表/详情/搜索筛选；报名/取消、报名状态、我的报名；推荐、行为采集。
+- 管理后台已完成：`http://127.0.0.1:8081/admin/login`，账号 `admin / admin123`；后台发布活动后 App 列表可见。A 不需要写后台页面，详见 `docs/管理员后台说明.md`。
+- 下一步：统计接口、最后联调与报告。
+
+### 2026-10-27 对 A 两次 Android 更新的确认
+
+- 已拉到 `origin/Erisme/android-dev` 的两次提交：
+  - `1b89171 feat(android): 完成首页静态展示与活动列表`
+  - `bccb9b2 feat(android): 完成认证与活动联调功能`
+- A 的记录里用 **ADB 反向端口转发** 解决模拟器连不上 `10.0.2.2` 的问题：
+  ```powershell
+  adb reverse tcp:8081 tcp:8081
+  ```
+  此时 Android 的 `BASE_URL` 用 `http://127.0.0.1:8081` 是合理的，B 不要求改回 `10.0.2.2`。
+- A 已实测：首页活动列表、`student01` 登录、`/users/me`、注册、兴趣标签、活动 5 报名/取消。服务端字段与现有实现一致，暂不需要 A 改接口。
+- 推荐接口已实现，见下一节；A 首页可以把占位换成真实推荐。管理员后台也不属于 A 的范围。
+
+### 2026-10-27 B-09 推荐与行为采集已完成
+
+新增两个接口，都需要 `Authorization: Bearer <token>`：
+
+| 方法 | 路径 | 用途 |
+|---|---|---|
+| `GET` | `/api/v1/recommendations?limit=10` | 个性化推荐，`limit` 1–20，默认 10 |
+| `POST` | `/api/v1/behaviors` | 记录浏览、分享、停留时长 |
+
+推荐返回示例：
+
+```json
+{
+  "code": 0,
+  "message": "ok",
+  "data": [
+    {
+      "activity": {
+        "id": 5,
+        "title": "校园歌手大赛决赛",
+        "type": "文艺",
+        "location": "大学生活动中心",
+        "startTime": "2026-11-06 19:00:00",
+        "endTime": "2026-11-06 21:30:00",
+        "signupDeadline": "2026-11-05 19:00:00",
+        "capacity": 200,
+        "signupCount": 18,
+        "remaining": 182,
+        "status": "PUBLISHED",
+        "tags": []
+      },
+      "score": 0.39,
+      "reason": "近期热门"
+    }
+  ],
+  "timestamp": "2026-10-27 17:31:00"
+}
+```
+
+推荐规则（A 不需要实现，只看结果）：
+
+- 有标签：0.7 × 标签内容相似度 + 0.3 × 热度；无标签冷启动只用热度。
+- 过滤已报名、已结束、非 `PUBLISHED` 的活动；每次请求重算，最多返回 20 条。
+- 每条带 `reason`，首页直接展示，不要自己编推荐理由。
+
+行为请求示例：
+
+```json
+{"activityId": 5, "type": "VIEW"}
+{"activityId": 5, "type": "SHARE"}
+{"activityId": 5, "type": "DURATION", "durationSeconds": 32}
+```
+
+- `VIEW` / `SHARE` 会原子累加活动表的浏览/分享计数。
+- `DURATION` 必须带大于 0 的 `durationSeconds`，只记录停留时长。
+- 建议：进入详情页发 `VIEW`，点分享按钮发 `SHARE`，离开详情页时发 `DURATION`；失败不要阻塞页面。
+
+测试与数据：服务端全量 36 个用例通过；真实 MySQL 用 `student01` 验证过推荐 5 条、浏览/分享计数累加，测试行为已清理，种子数据仍是 12 场活动、22 条报名。
 
 ### Android 模拟器怎么连
 
@@ -480,7 +554,7 @@ admin / admin123
 
 - 10-21 晚：标签接口、活动列表/详情、搜索筛选，补 MockMvc 测试。
 - 10-22：报名/取消/我的报名，事务和并发测试；接口联调。
-- 10-23：修联调问题；补 `docs/API.md` 和 Postman 集合。
+- 10-23：修联调问题；补 `docs/openapi.json` 和 Apifox 导入说明（不再依赖 Postman）。
 - 10-24 起：推荐、管理后台、行为统计；同时推进报告。
 
 > 10-22 更新：报名接口已完成，MockMvc 覆盖报名、重复报名、满额、截止、取消、重新报名、未登录、我的报名、并发抢名额；真实 MySQL 也已走通。A 可以直接按第 4 节接。

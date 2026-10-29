@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head('活动管理')}"></head>
+<body>
+<header th:replace="~{admin/fragments :: nav('activities')}"></header>
+
+<main class="page">
+    <div class="page-head">
+        <div>
+            <h1>活动管理</h1>
+            <p>创建、编辑和上下架活动；草稿不会出现在 Android 端。</p>
+        </div>
+        <a class="btn primary" th:href="@{/admin/activities/new}">新建活动</a>
+    </div>
+
+    <div class="flash ok" th:if="${message}" th:text="${message}"></div>
+    <div class="flash error" th:if="${error}" th:text="${error}"></div>
+
+    <section class="panel">
+        <table>
+            <thead>
+            <tr>
+                <th>活动</th>
+                <th>分类 / 地点</th>
+                <th>开始时间</th>
+                <th class="num">报名 / 容量</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="activity : ${activities}">
+                <td>
+                    <a th:href="@{/admin/activities/{id}/edit(id=${activity.id})}"
+                       th:text="${activity.title}">活动标题</a>
+                    <div class="hint" th:text="${activity.organizer != null ? activity.organizer : '未填写主办方'}">主办方</div>
+                </td>
+                <td>
+                    <div th:text="${activity.type}">类型</div>
+                    <div class="hint" th:text="${activity.location}">地点</div>
+                </td>
+                <td th:text="${activity.startTime}">时间</td>
+                <td class="num" th:text="${activity.signupCount + ' / ' + activity.capacity}">0 / 0</td>
+                <td>
+                    <span class="badge ok" th:if="${activity.status == 'PUBLISHED'}">已发布</span>
+                    <span class="badge draft" th:unless="${activity.status == 'PUBLISHED'}">草稿</span>
+                </td>
+                <td>
+                    <a class="btn small" th:href="@{/admin/activities/{id}/edit(id=${activity.id})}">编辑</a>
+                    <form th:action="@{/admin/activities/{id}/toggle(id=${activity.id})}" method="post"
+                          style="display:inline">
+                        <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
+                        <button class="btn small" type="submit"
+                                th:text="${activity.status == 'PUBLISHED' ? '转为草稿' : '发布'}">切换</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(activities)}">
+                <td colspan="6" class="empty">还没有活动，先新建一个。</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head('仪表盘')}"></head>
+<body>
+<header th:replace="~{admin/fragments :: nav('dashboard')}"></header>
+
+<main class="page">
+    <div class="page-head">
+        <div>
+            <h1>仪表盘</h1>
+            <p>活动、报名与用户行为的总览。</p>
+        </div>
+        <a class="btn primary" th:href="@{/admin/activities/new}">新建活动</a>
+    </div>
+
+    <div class="flash ok" th:if="${message}" th:text="${message}"></div>
+    <div class="flash error" th:if="${error}" th:text="${error}"></div>
+
+    <section class="cards">
+        <div class="card">
+            <div class="label">注册用户</div>
+            <div class="value" th:text="${userCount}">0</div>
+            <div class="sub">今日新增 <span th:text="${newUsersToday}">0</span> 人</div>
+        </div>
+        <div class="card">
+            <div class="label">活动总数</div>
+            <div class="value" th:text="${activityCount}">0</div>
+            <div class="sub">已发布 <span th:text="${publishedCount}">0</span> · 即将开始 <span th:text="${upcomingCount}">0</span></div>
+        </div>
+        <div class="card">
+            <div class="label">报名记录</div>
+            <div class="value" th:text="${registrationCount}">0</div>
+            <div class="sub">有效报名 <span th:text="${registeredCount}">0</span> · 今日 <span th:text="${registrationsToday}">0</span></div>
+        </div>
+        <div class="card">
+            <div class="label">行为记录</div>
+            <div class="value" th:text="${behaviorCount}">0</div>
+            <div class="sub">今日新增 <span th:text="${behaviorsToday}">0</span> 条</div>
+        </div>
+    </section>
+
+    <div class="split">
+        <section class="panel">
+            <h2>最近创建的活动</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>活动</th>
+                    <th>开始时间</th>
+                    <th>状态</th>
+                    <th class="num">报名</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="activity : ${recentActivities}">
+                    <td>
+                        <a th:href="@{/admin/activities/{id}/edit(id=${activity.id})}"
+                           th:text="${activity.title}">活动</a>
+                        <div class="hint" th:text="${activity.type}">类型</div>
+                    </td>
+                    <td th:text="${activity.startTime}">时间</td>
+                    <td>
+                        <span class="badge ok" th:if="${activity.status == 'PUBLISHED'}">已发布</span>
+                        <span class="badge draft" th:unless="${activity.status == 'PUBLISHED'}">草稿</span>
+                    </td>
+                    <td class="num" th:text="${activity.signupCount + ' / ' + activity.capacity}">0 / 0</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(recentActivities)}">
+                    <td colspan="4" class="empty">还没有活动</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="panel">
+            <h2>即将开始</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>活动</th>
+                    <th>时间</th>
+                    <th class="num">余位</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="activity : ${upcoming}">
+                    <td th:text="${activity.title}">活动</td>
+                    <td th:text="${activity.startTime}">时间</td>
+                    <td class="num"
+                        th:text="${activity.capacity - activity.signupCount}">0</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(upcoming)}">
+                    <td colspan="3" class="empty">暂无即将开始的活动</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+</main>
+</body>
+</html>

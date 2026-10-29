@@ -62,12 +62,28 @@ public class ActivityService {
                 PageRequest.of(page - 1, normalizedSize,
                         Sort.by(Sort.Direction.ASC, "startTime").and(Sort.by(Sort.Direction.ASC, "id"))));
 
-        Map<Long, List<TagResponse>> tagsByActivity = loadTags(result.getContent());
+        Map<Long, ActivitySummaryResponse> summaries = summarize(result.getContent());
         List<ActivitySummaryResponse> items = result.getContent().stream()
-                .map(activity -> toSummary(activity, tagsByActivity.getOrDefault(activity.getId(), List.of())))
+                .map(activity -> summaries.get(activity.getId()))
                 .toList();
 
         return new PageResponse<>(items, result.getTotalElements(), page, normalizedSize, result.getTotalPages());
+    }
+
+    /**
+     * 批量装配活动摘要，供列表和推荐复用，避免推荐模块重复查询标签。
+     */
+    public Map<Long, ActivitySummaryResponse> summarize(List<Activity> activities) {
+        if (activities.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, List<TagResponse>> tagsByActivity = loadTags(activities);
+        Map<Long, ActivitySummaryResponse> result = new LinkedHashMap<>();
+        for (Activity activity : activities) {
+            result.put(activity.getId(),
+                    toSummary(activity, tagsByActivity.getOrDefault(activity.getId(), List.of())));
+        }
+        return result;
     }
 
     @Transactional(readOnly = true)

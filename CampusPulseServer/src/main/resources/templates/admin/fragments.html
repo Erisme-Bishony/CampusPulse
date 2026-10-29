@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' · CampusPulse 管理后台'">CampusPulse 管理后台</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+<header class="topbar" th:fragment="nav(active)">
+    <a class="brand" th:href="@{/admin}">
+        <span class="brand-mark">CP</span>
+        <span>CampusPulse <small>管理后台</small></span>
+    </a>
+    <nav class="nav">
+        <a th:href="@{/admin}" th:classappend="${active == 'dashboard'} ? ' is-active' : ''">仪表盘</a>
+        <a th:href="@{/admin/activities}" th:classappend="${active == 'activities'} ? ' is-active' : ''">活动管理</a>
+        <a th:href="@{/admin/tags}" th:classappend="${active == 'tags'} ? ' is-active' : ''">标签管理</a>
+        <a th:href="@{/admin/users}" th:classappend="${active == 'users'} ? ' is-active' : ''">用户</a>
+    </nav>
+    <div class="account">
+        <span th:text="${session.adminName}">管理员</span>
+        <form th:action="@{/admin/logout}" method="post">
+            <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
+            <button class="link-button" type="submit">退出</button>
+        </form>
+    </div>
+</header>
+
+</body>
+</html>

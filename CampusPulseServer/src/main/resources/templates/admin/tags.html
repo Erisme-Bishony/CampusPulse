@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments :: head('标签管理')}"></head>
+<body>
+<header th:replace="~{admin/fragments :: nav('tags')}"></header>
+
+<main class="page">
+    <div class="page-head">
+        <div>
+            <h1>标签管理</h1>
+            <p>标签用于活动分类和用户兴趣；已被使用的标签不能删除。</p>
+        </div>
+    </div>
+
+    <div class="flash ok" th:if="${message}" th:text="${message}"></div>
+    <div class="flash error" th:if="${error}" th:text="${error}"></div>
+
+    <section class="panel">
+        <h2>新建标签</h2>
+        <form th:action="@{/admin/tags/create}" method="post" class="form-grid">
+            <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
+            <div>
+                <label for="name">名称</label>
+                <input id="name" name="name" type="text" maxlength="30" placeholder="例如：人工智能" required>
+            </div>
+            <div>
+                <label for="color">颜色</label>
+                <input id="color" name="color" type="text" value="#4A90D9" pattern="#[0-9a-fA-F]{6}">
+                <div class="hint">#RRGGBB，例如 #4A90D9。</div>
+            </div>
+            <div>
+                <label for="sortOrder">排序值</label>
+                <input id="sortOrder" name="sortOrder" type="number" min="0" value="0">
+            </div>
+            <div style="display:flex;align-items:flex-end">
+                <button class="btn primary" type="submit">创建标签</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>全部标签</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>标签</th>
+                <th>颜色</th>
+                <th class="num">排序</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="tag : ${tags}">
+                <td>
+                    <span class="tag-dot" th:style="|background: ${tag.color}|"></span>
+                    <span th:text="${tag.name}">标签</span>
+                </td>
+                <td th:text="${tag.color}">#4A90D9</td>
+                <td class="num" th:text="${tag.sortOrder}">0</td>
+                <td>
+                    <form th:action="@{/admin/tags/{id}/delete(id=${tag.id})}" method="post"
+                          style="display:inline">
+                        <input type="hidden" name="_csrf" th:value="${session.csrfToken}">
+                        <button class="btn small danger" type="submit">删除</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(tags)}">
+                <td colspan="4" class="empty">还没有标签</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>
