@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="false"
@@ -26,6 +28,12 @@
         </activity>
         <activity android:name=".AuthActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ActivityDetailActivity" android:exported="false" />
+        <receiver android:name=".LocalReminder$Receiver" android:exported="false" />
+        <receiver android:name=".LocalReminder$BootReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

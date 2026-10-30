@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
@@ -20,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -46,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
     private final String[] tabs = {"精选", "活动", "日程", "我的"};
     private final List<ActivityItem> activities = new ArrayList<>();
     private final List<ActivityItem> searchResults = new ArrayList<>();
+    private final List<RecommendedItem> recommendations = new ArrayList<>();
+    private final List<ActivityItem> scheduleItems = new ArrayList<>();
+    private final Calendar scheduleMonth = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"), Locale.CHINA);
     private final Handler handler = new Handler(Looper.getMainLooper());
     private ApiClient api;
     private LinearLayout tabRow, pageContent;
@@ -60,6 +65,13 @@ public class MainActivity extends AppCompatActivity {
     private int currentTab;
     private int searchVersion;
     private boolean listLoading = true;
+    private boolean recommendationsLoading;
+    private String recommendationsError;
+    private boolean scheduleLoading;
+    private boolean scheduleLoaded;
+    private String scheduleError;
+    private String scheduleDate;
+    private boolean showAllSchedule;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         api = new ApiClient(this);
+        scheduleMonth.set(Calendar.DAY_OF_MONTH, 1);
+        scheduleDate = today();
         tabRow = findViewById(R.id.tab_row);
         pageContent = findViewById(R.id.page_content);
         pageScroll = findViewById(R.id.page_scroll);
@@ -94,7 +108,11 @@ public class MainActivity extends AppCompatActivity {
         });
         showTab(0);
         loadActivities();
-        if (api.isLoggedIn()) verifySession();
+        if (api.isLoggedIn()) {
+            LocalReminder.restoreAll(this);
+            verifySession();
+            loadRecommendations();
+        }
     }
 
     @Override
@@ -102,11 +120,41 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK) {
             verifySession();
+            loadRecommendations();
+            scheduleLoaded = false;
             showTab(3);
         } else if (requestCode == 2) {
             loadActivities();
-            if (currentTab == 2) showTab(2);
+            if (api.isLoggedIn()) loadRecommendations();
+            if (currentTab == 2) loadSchedule();
         }
+    }
+
+    private void loadRecommendations() {
+        if (!api.isLoggedIn()) return;
+        recommendationsLoading = true;
+        recommendationsError = null;
+        if (currentTab == 0) renderPage();
+        api.get("/api/v1/recommendations?limit=5", new ApiClient.Callback() {
+            @Override public void onSuccess(Object data) {
+                recommendationsLoading = false;
+                recommendations.clear();
+                if (data instanceof JSONArray) {
+                    JSONArray rows = (JSONArray) data;
+                    for (int i = 0; i < rows.length(); i++) {
+                        JSONObject row = rows.optJSONObject(i);
+                        if (row == null || row.optJSONObject("activity") == null) continue;
+                        recommendations.add(new RecommendedItem(row));
+                    }
+                }
+                if (currentTab == 0) renderPage();
+            }
+            @Override public void onError(String message, int code) {
+                recommendationsLoading = false;
+                recommendationsError = message;
+                if (currentTab == 0) renderPage();
+            }
+        });
     }
 
     private void loadActivities() {
@@ -176,6 +224,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showTab(int index) {
         currentTab = index;
+        if (index == 2 && api.isLoggedIn() && !scheduleLoaded && !scheduleLoading) loadSchedule();
         tabRow.removeAllViews();
         for (int i = 0; i < tabs.length; i++) {
             final int tab = i;
@@ -252,7 +301,29 @@ public class MainActivity extends AppCompatActivity {
         gap(pageContent, 26);
         pageContent.addView(text("为你推荐", 20, R.color.ink, true));
         gap(pageContent, 13);
-        emptyCard("推荐即将上线", "推荐接口开发完成后，这里会展示与你的兴趣相关的活动。", null);
+        if (api.isLoggedIn()) {
+            TextView refresh = text("刷新推荐  ↻", 12, R.color.muted, true);
+            refresh.setOnClickListener(v -> loadRecommendations());
+            pageContent.addView(refresh);
+            gap(pageContent, 13);
+        }
+        if (!api.isLoggedIn()) {
+            emptyCard("登录后查看个性化推荐", "根据你的兴趣和活动热度，为你挑选校园活动。", () -> openAuth(false));
+        } else if (recommendationsLoading) {
+            emptyCard("正在挑选活动", "请稍候…", null);
+        } else if (recommendationsError != null) {
+            emptyCard("推荐暂时无法加载", recommendationsError + " · 点击重试", this::loadRecommendations);
+        } else if (recommendations.isEmpty()) {
+            emptyCard("暂无新的推荐", "可以在活动页浏览更多内容，或调整兴趣方向。", () -> showTab(1));
+        } else {
+            for (RecommendedItem item : recommendations) {
+                TextView reason = text(item.reason, 12, R.color.muted, true);
+                pageContent.addView(reason);
+                gap(pageContent, 8);
+                addActivityCard(item.activity);
+                gap(pageContent, 17);
+            }
+        }
     }
 
     private void renderActivities() {
@@ -321,51 +392,138 @@ public class MainActivity extends AppCompatActivity {
         pageContent.addView(scroller, fullWidth());
     }
 
-    private void renderSchedule() {
-        pageContent.addView(text("我的日程", 26, R.color.ink, true));
-        gap(pageContent, 7);
-        pageContent.addView(text("已经报名的活动，按时间排列。", 13, R.color.muted, false));
-        gap(pageContent, 25);
-        if (!api.isLoggedIn()) {
-            emptyCard("登录后查看日程", "报名记录会显示在这里 · 点击登录", () -> openAuth(false));
-            return;
-        }
-        emptyCard("正在读取报名记录", "请稍候…", null);
+    private void loadSchedule() {
+        scheduleLoading = true;
+        scheduleError = null;
+        if (currentTab == 2) renderPage();
         api.get("/api/v1/users/me/registrations", new ApiClient.Callback() {
             @Override public void onSuccess(Object data) {
-                if (currentTab != 2) return;
-                pageContent.removeAllViews();
-                pageContent.addView(text("我的日程", 26, R.color.ink, true));
-                gap(pageContent, 7);
-                pageContent.addView(text("已报名活动 · 点击查看详情", 13, R.color.muted, false));
-                gap(pageContent, 25);
-                List<ActivityItem> mine = new ArrayList<>();
+                scheduleLoading = false;
+                scheduleLoaded = true;
+                scheduleItems.clear();
                 if (data instanceof JSONArray) {
                     JSONArray records = (JSONArray) data;
                     for (int i = 0; i < records.length(); i++) {
                         JSONObject record = records.optJSONObject(i);
                         if (record == null || !"REGISTERED".equals(record.optString("status"))) continue;
                         JSONObject item = record.optJSONObject("activity");
-                        if (item == null) continue;
-                        mine.add(new ActivityItem(item));
+                        if (item != null) scheduleItems.add(new ActivityItem(item));
                     }
                 }
-                mine.sort(Comparator.comparing(item -> item.startTime));
-                for (ActivityItem item : mine) {
-                    addActivityCard(item);
-                    gap(pageContent, 11);
-                }
-                if (mine.isEmpty()) emptyCard("还没有报名活动", "去活动页看看下一场想参加的活动。", () -> showTab(1));
+                scheduleItems.sort(Comparator.comparing(item -> item.startTime));
+                if (currentTab == 2) renderPage();
             }
             @Override public void onError(String message, int code) {
-                if (currentTab != 2) return;
-                pageContent.removeAllViews();
-                emptyCard(code == 40101 ? "登录已过期" : "日程加载失败", message + " · 点击重试", () -> {
-                    if (code == 40101) openAuth(false);
-                    else showTab(2);
-                });
+                scheduleLoading = false;
+                scheduleLoaded = false;
+                scheduleError = message;
+                if (currentTab == 2) renderPage();
             }
         });
+    }
+
+    private void renderSchedule() {
+        pageContent.addView(text("活动日历", 26, R.color.ink, true));
+        gap(pageContent, 7);
+        pageContent.addView(text("查看已报名活动，选择日期了解当天安排。", 13, R.color.muted, false));
+        gap(pageContent, 25);
+        if (!api.isLoggedIn()) {
+            emptyCard("登录后查看日历", "报名记录会显示在这里 · 点击登录", () -> openAuth(false));
+            return;
+        }
+        renderCalendar();
+        gap(pageContent, 25);
+        LinearLayout heading = new LinearLayout(this);
+        heading.setGravity(Gravity.CENTER_VERTICAL);
+        heading.addView(text(showAllSchedule ? "全部报名" : scheduleDate.substring(5).replace('-', '月') + "日", 18,
+                R.color.ink, true), new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView toggle = text(showAllSchedule ? "按日期查看" : "查看全部", 12, R.color.muted, true);
+        toggle.setOnClickListener(v -> { showAllSchedule = !showAllSchedule; renderPage(); });
+        heading.addView(toggle);
+        pageContent.addView(heading, fullWidth());
+        gap(pageContent, 14);
+        if (scheduleLoading) { emptyCard("正在读取报名记录", "请稍候…", null); return; }
+        if (scheduleError != null) {
+            emptyCard("日历加载失败", scheduleError + " · 点击重试", this::loadSchedule);
+            return;
+        }
+        int count = 0;
+        for (ActivityItem item : scheduleItems) {
+            if (!showAllSchedule && !item.startTime.startsWith(scheduleDate)) continue;
+            addActivityCard(item);
+            gap(pageContent, 11);
+            count++;
+        }
+        if (count == 0) emptyCard(showAllSchedule ? "还没有报名活动" : "当天没有报名活动",
+                showAllSchedule ? "去活动页看看下一场想参加的活动。" : "选择其他日期，或查看全部报名。",
+                showAllSchedule ? () -> showTab(1) : () -> { showAllSchedule = true; renderPage(); });
+    }
+
+    private void renderCalendar() {
+        LinearLayout calendar = column();
+        calendar.setPadding(dp(13), dp(15), dp(13), dp(15));
+        calendar.setBackground(shape(R.color.card, 16, 1));
+        LinearLayout monthRow = new LinearLayout(this);
+        monthRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView previous = text("‹", 25, R.color.muted, true);
+        previous.setGravity(Gravity.CENTER);
+        previous.setOnClickListener(v -> changeScheduleMonth(-1));
+        monthRow.addView(previous, new LinearLayout.LayoutParams(dp(42), dp(39)));
+        TextView month = text(String.format(Locale.CHINA, "%d 年 %02d 月",
+                scheduleMonth.get(Calendar.YEAR), scheduleMonth.get(Calendar.MONTH) + 1), 16, R.color.ink, true);
+        month.setGravity(Gravity.CENTER);
+        monthRow.addView(month, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView next = text("›", 25, R.color.muted, true);
+        next.setGravity(Gravity.CENTER);
+        next.setOnClickListener(v -> changeScheduleMonth(1));
+        monthRow.addView(next, new LinearLayout.LayoutParams(dp(42), dp(39)));
+        calendar.addView(monthRow, fullWidth());
+        gap(calendar, 12);
+        String[] weekdays = {"一", "二", "三", "四", "五", "六", "日"};
+        LinearLayout weekdayRow = new LinearLayout(this);
+        for (String name : weekdays) {
+            TextView day = text(name, 11, R.color.muted, true);
+            day.setGravity(Gravity.CENTER);
+            weekdayRow.addView(day, new LinearLayout.LayoutParams(0, dp(25), 1));
+        }
+        calendar.addView(weekdayRow, fullWidth());
+
+        int firstWeekday = (scheduleMonth.get(Calendar.DAY_OF_WEEK) + 5) % 7;
+        int daysInMonth = scheduleMonth.getActualMaximum(Calendar.DAY_OF_MONTH);
+        int cells = ((firstWeekday + daysInMonth + 6) / 7) * 7;
+        for (int row = 0; row < cells / 7; row++) {
+            LinearLayout week = new LinearLayout(this);
+            for (int column = 0; column < 7; column++) {
+                int dayNumber = row * 7 + column - firstWeekday + 1;
+                TextView day = text("", 13, R.color.ink, false);
+                day.setGravity(Gravity.CENTER);
+                if (dayNumber >= 1 && dayNumber <= daysInMonth) {
+                    String date = String.format(Locale.CHINA, "%04d-%02d-%02d",
+                            scheduleMonth.get(Calendar.YEAR), scheduleMonth.get(Calendar.MONTH) + 1, dayNumber);
+                    boolean hasActivity = false;
+                    for (ActivityItem item : scheduleItems) {
+                        if (item.startTime.startsWith(date)) { hasActivity = true; break; }
+                    }
+                    day.setText(dayNumber + (hasActivity ? "\n●" : "\n "));
+                    if (date.equals(scheduleDate) && !showAllSchedule) {
+                        day.setBackground(shape(R.color.khaki_light, 10, 0));
+                    }
+                    day.setOnClickListener(v -> { scheduleDate = date; showAllSchedule = false; renderPage(); });
+                }
+                week.addView(day, new LinearLayout.LayoutParams(0, dp(48), 1));
+            }
+            calendar.addView(week, fullWidth());
+        }
+        pageContent.addView(calendar, fullWidth());
+    }
+
+    private void changeScheduleMonth(int offset) {
+        scheduleMonth.add(Calendar.MONTH, offset);
+        scheduleMonth.set(Calendar.DAY_OF_MONTH, 1);
+        scheduleDate = String.format(Locale.CHINA, "%04d-%02d-01",
+                scheduleMonth.get(Calendar.YEAR), scheduleMonth.get(Calendar.MONTH) + 1);
+        showAllSchedule = false;
+        renderPage();
     }
 
     private void renderProfile() {
@@ -392,9 +550,65 @@ public class MainActivity extends AppCompatActivity {
         gap(pageContent, 18);
         button("我的报名", R.color.khaki_light, R.color.ink, () -> showTab(2));
         gap(pageContent, 10);
+        button("编辑联系方式", R.color.card, R.color.ink, this::showProfileEditor);
+        gap(pageContent, 10);
         button("管理兴趣方向", R.color.card, R.color.ink, this::showInterestEditor);
         gap(pageContent, 10);
         button("退出登录", R.color.card, R.color.muted, this::logout);
+    }
+
+    private void showProfileEditor() {
+        pageContent.removeAllViews();
+        TextView back = text("←  返回我的", 13, R.color.muted, true);
+        back.setOnClickListener(v -> renderPage());
+        pageContent.addView(back);
+        gap(pageContent, 24);
+        pageContent.addView(text("编辑联系方式", 26, R.color.ink, true));
+        gap(pageContent, 8);
+        pageContent.addView(text("邮箱与手机号可以留空，保存后同步到账号。", 13, R.color.muted, false));
+        gap(pageContent, 25);
+        pageContent.addView(text("邮箱", 13, R.color.muted, true));
+        gap(pageContent, 9);
+        EditText email = profileField("邮箱地址", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        email.setText(currentUser == null || currentUser.isNull("email") ? "" : currentUser.optString("email"));
+        pageContent.addView(email, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(50)));
+        gap(pageContent, 20);
+        pageContent.addView(text("手机号", 13, R.color.muted, true));
+        gap(pageContent, 9);
+        EditText phone = profileField("11 位手机号", InputType.TYPE_CLASS_PHONE);
+        phone.setText(currentUser == null || currentUser.isNull("phone") ? "" : currentUser.optString("phone"));
+        pageContent.addView(phone, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(50)));
+        gap(pageContent, 26);
+        button("保存资料", R.color.ink, R.color.card, () -> {
+            JSONObject payload = new JSONObject();
+            try {
+                payload.put("email", email.getText().toString().trim());
+                payload.put("phone", phone.getText().toString().trim());
+            } catch (Exception ignored) { return; }
+            api.put("/api/v1/users/me", payload, new ApiClient.Callback() {
+                @Override public void onSuccess(Object updated) {
+                    if (updated instanceof JSONObject) currentUser = (JSONObject) updated;
+                    android.widget.Toast.makeText(MainActivity.this, "资料已保存", android.widget.Toast.LENGTH_SHORT).show();
+                    renderPage();
+                }
+                @Override public void onError(String message, int code) {
+                    android.widget.Toast.makeText(MainActivity.this, message, android.widget.Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+    }
+
+    private EditText profileField(String hint, int inputType) {
+        EditText field = new EditText(this);
+        field.setSingleLine(true);
+        field.setInputType(inputType);
+        field.setTextSize(14);
+        field.setTextColor(color(R.color.ink));
+        field.setHintTextColor(color(R.color.muted));
+        field.setHint(hint);
+        field.setPadding(dp(16), 0, dp(16), 0);
+        field.setBackground(shape(R.color.card, 12, 1));
+        return field;
     }
 
     private void showInterestEditor() {
@@ -445,6 +659,7 @@ public class MainActivity extends AppCompatActivity {
                     api.put("/api/v1/users/me/interests", payload, new ApiClient.Callback() {
                         @Override public void onSuccess(Object updated) {
                             if (updated instanceof JSONObject) currentUser = (JSONObject) updated;
+                            loadRecommendations();
                             renderPage();
                         }
                         @Override public void onError(String message, int code) {
@@ -469,8 +684,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void finishLogout() {
+        LocalReminder.cancelAll(this);
         api.clearSession();
         currentUser = null;
+        scheduleItems.clear();
+        scheduleLoaded = false;
+        recommendations.clear();
+        recommendationsError = null;
+        recommendationsLoading = false;
         showTab(3);
     }
 
@@ -618,5 +839,15 @@ public class MainActivity extends AppCompatActivity {
         String time() { return startTime.length() >= 16 ? startTime.substring(11, 16) : "待定"; }
         String dateLabel() { return month() + "月" + day() + "日"; }
         boolean matches(String query) { return title.contains(query) || type.contains(query) || location.contains(query); }
+    }
+
+    private static class RecommendedItem {
+        final ActivityItem activity;
+        final String reason;
+
+        RecommendedItem(JSONObject json) {
+            activity = new ActivityItem(json.optJSONObject("activity"));
+            reason = json.optString("reason", "为你推荐");
+        }
     }
 }
