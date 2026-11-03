@@ -1,9 +1,13 @@
 package com.campuspulse.app;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.os.Build;
+import android.os.SystemClock;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,6 +39,9 @@ public class ActivityDetailActivity extends AppCompatActivity {
     private long activityId;
     private boolean registered;
     private boolean busy;
+    private boolean viewRecorded;
+    private long visibleSinceMs;
+    private int pendingReminderMinutes = 60;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +68,40 @@ public class ActivityDetailActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == RESULT_OK) loadStatus();
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            loadStatus();
+            recordViewOnce();
+            visibleSinceMs = SystemClock.elapsedRealtime();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != 3) return;
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            scheduleReminder();
+        } else {
+            Toast.makeText(this, "报名已成功；通知权限未开启，无法提醒", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (activity != null && api != null && api.isLoggedIn()) {
+            visibleSinceMs = SystemClock.elapsedRealtime();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (visibleSinceMs > 0 && api != null && api.isLoggedIn()) {
+            int seconds = (int) ((SystemClock.elapsedRealtime() - visibleSinceMs) / 1000);
+            if (seconds > 0) recordBehavior("DURATION", seconds);
+        }
+        visibleSinceMs = 0;
+        super.onPause();
     }
 
     private void loadDetail() {
@@ -72,7 +112,11 @@ public class ActivityDetailActivity extends AppCompatActivity {
                 if (!(data instanceof JSONObject)) { showError("活动数据格式不正确"); return; }
                 activity = (JSONObject) data;
                 render();
-                if (api.isLoggedIn()) loadStatus();
+                if (api.isLoggedIn()) {
+                    loadStatus();
+                    recordViewOnce();
+                    visibleSinceMs = SystemClock.elapsedRealtime();
+                }
             }
             @Override public void onError(String message, int code) { showError(message); }
         });
@@ -144,6 +188,16 @@ public class ActivityDetailActivity extends AppCompatActivity {
         action.setOnClickListener(v -> onAction());
         content.addView(action, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(52)));
         gap(12);
+        if (registered) {
+            String label = LocalReminder.hasReminder(this, activityId)
+                    ? "提醒 · 约提前 " + LocalReminder.reminderLabel(LocalReminder.selectedMinutes(this, activityId))
+                    : "设置活动提醒";
+            TextView reminder = text(label + "  ›", 13, R.color.muted, true);
+            reminder.setGravity(Gravity.CENTER);
+            reminder.setOnClickListener(v -> showReminderPicker());
+            content.addView(reminder, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(40)));
+            gap(8);
+        }
         TextView share = text("分享活动", 13, R.color.muted, true);
         share.setGravity(Gravity.CENTER);
         share.setOnClickListener(v -> share());
@@ -192,6 +246,8 @@ public class ActivityDetailActivity extends AppCompatActivity {
                 busy = false;
                 registered = signUp;
                 Toast.makeText(ActivityDetailActivity.this, signUp ? "报名成功" : "已取消报名", Toast.LENGTH_SHORT).show();
+                if (signUp) prepareReminder(60);
+                else LocalReminder.cancel(ActivityDetailActivity.this, activityId);
                 loadDetail();
             }
             @Override public void onError(String message, int code) {
@@ -204,12 +260,69 @@ public class ActivityDetailActivity extends AppCompatActivity {
         else api.delete(path, callback);
     }
 
+    private void showReminderPicker() {
+        String[] choices = {"提前 10 分钟", "提前 30 分钟", "提前 1 小时", "提前 1 天", "关闭提醒"};
+        int[] minutes = {10, 30, 60, 1440};
+        new AlertDialog.Builder(this).setTitle("活动提醒时间")
+                .setItems(choices, (dialog, which) -> {
+                    if (which == 4) {
+                        LocalReminder.cancel(this, activityId);
+                        Toast.makeText(this, "已关闭活动提醒", Toast.LENGTH_SHORT).show();
+                        render();
+                    } else {
+                        prepareReminder(minutes[which]);
+                    }
+                }).show();
+    }
+
+    private void prepareReminder(int minutes) {
+        pendingReminderMinutes = minutes;
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 3);
+        } else {
+            scheduleReminder();
+        }
+    }
+
+    private void scheduleReminder() {
+        if (activity == null) return;
+        boolean scheduled = LocalReminder.schedule(this, activityId,
+                activity.optString("title"), activity.optString("startTime"), pendingReminderMinutes);
+        Toast.makeText(this, scheduled ? "已安排约提前 " + LocalReminder.reminderLabel(pendingReminderMinutes) + " 提醒"
+                        : "所选提醒时间已过，请选择更短的提前时间",
+                Toast.LENGTH_SHORT).show();
+        render();
+    }
+
     private void share() {
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("text/plain");
         intent.putExtra(Intent.EXTRA_TEXT, activity.optString("title") + "\n" + formatTime(activity.optString("startTime"))
                 + " · " + activity.optString("location") + "\n来自 CampusPulse");
         startActivity(Intent.createChooser(intent, "分享活动"));
+        if (api.isLoggedIn()) recordBehavior("SHARE", null);
+    }
+
+    private void recordViewOnce() {
+        if (viewRecorded || !api.isLoggedIn()) return;
+        viewRecorded = true;
+        recordBehavior("VIEW", null);
+    }
+
+    private void recordBehavior(String type, Integer durationSeconds) {
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("activityId", activityId);
+            payload.put("type", type);
+            if (durationSeconds != null) payload.put("durationSeconds", durationSeconds);
+        } catch (Exception ignored) { return; }
+        api.post("/api/v1/behaviors", payload, new ApiClient.Callback() {
+            @Override public void onSuccess(Object data) { }
+            @Override public void onError(String message, int code) {
+                // 行为记录失败不影响浏览、分享和离开详情页。
+            }
+        });
     }
 
     private String formatTime(String value) {
