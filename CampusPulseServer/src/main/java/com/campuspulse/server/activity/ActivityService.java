@@ -1,6 +1,7 @@
 package com.campuspulse.server.activity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -34,6 +36,9 @@ public class ActivityService {
 
     private static final int MAX_PAGE_SIZE = 50;
 
+    @Value("${app.search.fulltext:true}")
+    private boolean fulltextEnabled;
+
     private final ActivityRepository activityRepository;
     private final ActivityTagRepository activityTagRepository;
     private final TagRepository tagRepository;
@@ -56,11 +61,25 @@ public class ActivityService {
         validatePage(page, size);
         String normalizedKeyword = normalizeKeyword(keyword);
         int normalizedSize = Math.min(size, MAX_PAGE_SIZE);
+        String normalizedType = type == null || type.isBlank() ? null : type.trim();
+        LocalDateTime fromTime = date == null ? null : date.atStartOfDay();
+        LocalDateTime toTime = date == null ? null : date.plusDays(1).atStartOfDay();
 
-        Page<Activity> result = activityRepository.findAll(
-                ActivitySpecifications.publishedFilter(normalizedKeyword, tagId, type, date),
-                PageRequest.of(page - 1, normalizedSize,
-                        Sort.by(Sort.Direction.ASC, "startTime").and(Sort.by(Sort.Direction.ASC, "id"))));
+        PageRequest sortedRequest = PageRequest.of(page - 1, normalizedSize,
+                Sort.by(Sort.Direction.ASC, "startTime").and(Sort.by(Sort.Direction.ASC, "id")));
+        Page<Activity> result;
+        if (fulltextEnabled && normalizedKeyword != null) {
+            // 原生 SQL 已自带 ORDER BY；不能再把 JPA 的 startTime 排序传给 Pageable，
+            // 否则 Spring Data 会追加 a.startTime 这个实体属性名，MySQL 无法识别。
+            result = activityRepository.searchFulltext(
+                    normalizedKeyword, tagId, normalizedType, fromTime, toTime,
+                    PageRequest.of(page - 1, normalizedSize));
+        } else {
+            result = activityRepository.findAll(
+                    ActivitySpecifications.publishedFilter(
+                            normalizedKeyword, tagId, normalizedType, date),
+                    sortedRequest);
+        }
 
         Map<Long, ActivitySummaryResponse> summaries = summarize(result.getContent());
         List<ActivitySummaryResponse> items = result.getContent().stream()

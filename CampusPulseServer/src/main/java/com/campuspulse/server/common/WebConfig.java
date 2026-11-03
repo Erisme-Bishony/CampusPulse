@@ -31,8 +31,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/v1/activities/*/registrations",
                         "/api/v1/activities/*/registration-status",
                         "/api/v1/behaviors/**",
-                        "/api/v1/recommendations/**",
-                        "/api/v1/reminders/**");
+                        "/api/v1/recommendations/**");
 
         registry.addInterceptor(adminAuthInterceptor)
                 .addPathPatterns("/admin", "/admin/**")
