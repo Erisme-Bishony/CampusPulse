@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.campuspulse.server.common.JwtUtil;
 import com.campuspulse.server.domain.Activity;
 import com.campuspulse.server.domain.ActivityTag;
+import com.campuspulse.server.domain.Behavior;
 import com.campuspulse.server.domain.Registration;
 import com.campuspulse.server.domain.Tag;
 import com.campuspulse.server.domain.User;
@@ -166,6 +167,115 @@ class RecommendationControllerTest {
                         .param("limit", "0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code", is(40001)));
+    }
+
+    @Test
+    void collaborativeFilteringRanksActivitiesBySimilarUsers() throws Exception {
+        Tag lecture = tag("讲座");
+        userTagRepository.save(new UserTag(user.getId(), lecture.getId()));
+
+        Activity historyX = activity("历史浏览X", lecture, 0, 0, now.minusDays(3));
+        Activity historyY = activity("历史浏览Y", lecture, 0, 0, now.minusDays(2));
+        Activity historyZ = activity("历史浏览Z", lecture, 0, 0, now.minusDays(1));
+        behavior(user.getId(), historyX.getId(), "VIEW", 0);
+        behavior(user.getId(), historyY.getId(), "VIEW", 0);
+        behavior(user.getId(), historyZ.getId(), "VIEW", 0);
+
+        Activity similarA = activity("相似用户活动A", lecture, 0, 0, now.plusDays(2));
+        Activity similarB = activity("相似用户活动B", lecture, 0, 0, now.plusDays(3));
+
+        User neighborA = otherUser("neighbor-a-");
+        behavior(neighborA.getId(), historyX.getId(), "VIEW", 0);
+        behavior(neighborA.getId(), historyY.getId(), "VIEW", 0);
+        registration(neighborA.getId(), similarA.getId());
+
+        User neighborB = otherUser("neighbor-b-");
+        behavior(neighborB.getId(), historyZ.getId(), "VIEW", 0);
+        registration(neighborB.getId(), similarB.getId());
+
+        mockMvc.perform(get("/api/v1/recommendations")
+                        .header("Authorization", "Bearer " + token)
+                        .param("limit", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()", is(2)))
+                .andExpect(jsonPath("$.data[0].activity.title", is("相似用户活动A")))
+                .andExpect(jsonPath("$.data[0].reason", is("和你兴趣相似的用户也关注了")))
+                .andExpect(jsonPath("$.data[1].activity.title", is("相似用户活动B")));
+
+        org.junit.jupiter.api.Assertions.assertEquals("COLLABORATIVE_CONTENT",
+                recommendationRepository.findByUserIdOrderByScoreDesc(user.getId()).get(0).getAlgorithm());
+    }
+
+    @Test
+    void durationBehaviorContributesToCollaborativeScore() throws Exception {
+        Tag lecture = tag("讲座");
+        userTagRepository.save(new UserTag(user.getId(), lecture.getId()));
+
+        Activity history = activity("历史停留", lecture, 0, 0, now.minusDays(2));
+        behavior(user.getId(), history.getId(), "DURATION", 600);
+
+        Activity similar = activity("停留相似活动", lecture, 0, 0, now.plusDays(2));
+        activity("普通活动", lecture, 0, 0, now.plusDays(3));
+        User neighbor = otherUser("duration-neighbor-");
+        behavior(neighbor.getId(), history.getId(), "VIEW", 0);
+        registration(neighbor.getId(), similar.getId());
+
+        mockMvc.perform(get("/api/v1/recommendations")
+                        .header("Authorization", "Bearer " + token)
+                        .param("limit", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].activity.title", is("停留相似活动")))
+                .andExpect(jsonPath("$.data[0].reason", is("和你兴趣相似的用户也关注了")));
+
+        org.junit.jupiter.api.Assertions.assertEquals("COLLABORATIVE_CONTENT",
+                recommendationRepository.findByUserIdOrderByScoreDesc(user.getId()).get(0).getAlgorithm());
+    }
+
+    @Test
+    void shareBehaviorIsUsedInCollaborativeScoring() throws Exception {
+        Tag lecture = tag("讲座");
+        userTagRepository.save(new UserTag(user.getId(), lecture.getId()));
+
+        Activity history = activity("历史分享", lecture, 0, 0, now.minusDays(2));
+        behavior(user.getId(), history.getId(), "SHARE", 0);
+
+        // B 开始更早；如果分享行为没有进入偏好，B 会排在 A 前面。
+        Activity similarB = activity("分享相似活动B", lecture, 0, 0, now.plusDays(1));
+        Activity similarA = activity("分享相似活动A", lecture, 0, 0, now.plusDays(2));
+        User neighbor = otherUser("share-neighbor-");
+        behavior(neighbor.getId(), history.getId(), "VIEW", 0);
+        registration(neighbor.getId(), similarA.getId());
+
+        mockMvc.perform(get("/api/v1/recommendations")
+                        .header("Authorization", "Bearer " + token)
+                        .param("limit", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].activity.title", is("分享相似活动A")))
+                .andExpect(jsonPath("$.data[0].reason", is("和你兴趣相似的用户也关注了")));
+
+        org.junit.jupiter.api.Assertions.assertEquals("COLLABORATIVE_CONTENT",
+                recommendationRepository.findByUserIdOrderByScoreDesc(user.getId()).get(0).getAlgorithm());
+    }
+
+    private User otherUser(String prefix) {
+        User other = new User();
+        other.setUsername(prefix + System.nanoTime());
+        other.setPasswordHash("x");
+        other.setStatus((byte) 1);
+        return userRepository.save(other);
+    }
+
+    private void behavior(Long userId, Long activityId, String type, int durationSeconds) {
+        behaviorRepository.save(new Behavior(userId, activityId, type, durationSeconds, now));
+    }
+
+    private void registration(Long userId, Long activityId) {
+        Registration registration = new Registration();
+        registration.setUserId(userId);
+        registration.setActivityId(activityId);
+        registration.setStatus("REGISTERED");
+        registration.setCreatedAt(now);
+        registrationRepository.save(registration);
     }
 
     private Tag tag(String name) {
